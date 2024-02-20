@@ -1,13 +1,12 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 import websockets
 
 from Model import Todo
 
-app = FastAPI()
+Websocket_Router = APIRouter()
 
 # Java 서버의 WebSocket 엔드포인트 주소
 java_server_uri = "ws://localhost:8080/chatt"
-import websockets
 
 class WebSocketManager:
     _instance = None
@@ -33,11 +32,11 @@ class WebSocketManager:
 
 websocket_manager = WebSocketManager()
 
-@app.on_event("startup")
+@Websocket_Router.on_event("startup")
 async def startup_event():
     await websocket_manager.connect(java_server_uri)
 
-@app.post("/send_data")
+@Websocket_Router.post("/send_data")
 async def send_data_to_java_server(todo: Todo):
     try:
         await websocket_manager.send_message("message.id")
@@ -45,10 +44,10 @@ async def send_data_to_java_server(todo: Todo):
     except Exception as e:
         return {"error": str(e)}
 
-@app.on_event("shutdown")
+@Websocket_Router.on_event("shutdown")
 async def shutdown_event():
     await websocket_manager.close()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(Websocket_Router, host="0.0.0.0", port=8000)
